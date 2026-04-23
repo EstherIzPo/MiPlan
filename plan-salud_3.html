@@ -1,0 +1,2049 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mi Plan de Salud</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+:root {
+  --bg: #F7F5F0;
+  --surface: #FFFFFF;
+  --surface2: #F0EDE8;
+  --border: #E5E0D8;
+  --text: #1A1814;
+  --text2: #6B6560;
+  --text3: #9E9892;
+  --green: #2D6A4F;
+  --green-light: #E8F5EE;
+  --green-mid: #52B788;
+  --amber: #B5451B;
+  --amber-light: #FDF0EB;
+  --blue: #1B4F8A;
+  --blue-light: #EBF2FA;
+  --purple: #5C3D8F;
+  --purple-light: #F0EBF8;
+  --red: #C0392B;
+  --red-light: #FDEEEC;
+  --radius: 16px;
+  --radius-sm: 10px;
+  --shadow: 0 2px 12px rgba(0,0,0,0.06);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.10);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+/* NAV */
+.nav {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(247,245,240,0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 1.5rem;
+}
+.nav-inner {
+  max-width: 900px; margin: 0 auto;
+  display: flex; align-items: center; justify-content: space-between;
+  height: 56px;
+}
+.nav-logo {
+  font-family: 'DM Serif Display', serif;
+  font-size: 18px; color: var(--green);
+  letter-spacing: -0.02em;
+}
+.nav-tabs {
+  display: flex; gap: 2px;
+  overflow-x: auto; scrollbar-width: none;
+}
+.nav-tabs::-webkit-scrollbar { display: none; }
+.nav-tab {
+  padding: 6px 14px; border-radius: 20px;
+  font-size: 13px; font-weight: 500;
+  cursor: pointer; white-space: nowrap;
+  color: var(--text2); border: none; background: none;
+  transition: all 0.2s;
+}
+.nav-tab:hover { background: var(--surface2); color: var(--text); }
+.nav-tab.active { background: var(--green); color: white; }
+
+/* MAIN */
+.main { max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+
+/* SECTIONS */
+.section { display: none; }
+.section.active { display: block; }
+
+/* PAGE HEADER */
+.page-header {
+  margin-bottom: 2rem;
+}
+.page-header h1 {
+  font-family: 'DM Serif Display', serif;
+  font-size: clamp(26px, 5vw, 36px);
+  color: var(--text); line-height: 1.15;
+  letter-spacing: -0.02em;
+  margin-bottom: 6px;
+}
+.page-header p { color: var(--text2); font-size: 15px; }
+
+/* EXPORT ACTIONS */
+.export-bar {
+  display: flex; gap: 8px; margin-bottom: 1.5rem; flex-wrap: wrap;
+}
+.btn-export {
+  display: flex; align-items: center; gap: 6px;
+  padding: 8px 16px; border-radius: 20px;
+  font-size: 13px; font-weight: 500; cursor: pointer;
+  border: 1px solid var(--border);
+  background: var(--surface); color: var(--text2);
+  transition: all 0.2s;
+}
+.btn-export:hover { border-color: var(--green); color: var(--green); }
+.btn-export svg { width: 14px; height: 14px; }
+
+/* METRIC CARDS GRID */
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px; margin-bottom: 1.5rem;
+}
+.metric-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.25rem;
+  position: relative; overflow: hidden;
+}
+.metric-card::before {
+  content: ''; position: absolute;
+  top: 0; left: 0; right: 0; height: 3px;
+}
+.metric-card.green::before { background: var(--green-mid); }
+.metric-card.amber::before { background: #E07B39; }
+.metric-card.blue::before { background: #4A90D9; }
+.metric-card.purple::before { background: #8B5CF6; }
+.metric-card.red::before { background: var(--red); }
+.metric-label {
+  font-size: 11px; font-weight: 600; letter-spacing: 0.07em;
+  text-transform: uppercase; color: var(--text3); margin-bottom: 6px;
+}
+.metric-value {
+  font-family: 'DM Serif Display', serif;
+  font-size: 28px; color: var(--text);
+  line-height: 1; margin-bottom: 2px;
+}
+.metric-unit { font-size: 12px; color: var(--text2); }
+.metric-sub { font-size: 12px; color: var(--text3); margin-top: 4px; }
+
+/* CARDS */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+}
+.card-title {
+  font-size: 11px; font-weight: 600; letter-spacing: 0.07em;
+  text-transform: uppercase; color: var(--text3);
+  margin-bottom: 1rem;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.card h3 {
+  font-family: 'DM Serif Display', serif;
+  font-size: 20px; color: var(--text);
+  margin-bottom: 0.75rem; letter-spacing: -0.01em;
+}
+
+/* MACRO BAR */
+.macro-bar-wrap { margin: 1rem 0; }
+.macro-bar-label {
+  display: flex; justify-content: space-between;
+  font-size: 12px; color: var(--text2); margin-bottom: 4px;
+}
+.macro-bar-track {
+  height: 6px; background: var(--surface2);
+  border-radius: 3px; overflow: hidden;
+}
+.macro-bar-fill {
+  height: 100%; border-radius: 3px;
+  transition: width 0.8s cubic-bezier(0.4,0,0.2,1);
+}
+.fill-protein { background: var(--green-mid); }
+.fill-carbs { background: #E07B39; }
+.fill-fat { background: #4A90D9; }
+.fill-fiber { background: #8B5CF6; }
+
+/* MACRO PILLS */
+.macro-pills {
+  display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px;
+}
+.macro-pill {
+  display: flex; align-items: center; gap: 4px;
+  padding: 3px 10px; border-radius: 12px;
+  font-size: 12px; font-weight: 500;
+}
+.pill-p { background: #E8F5EE; color: #1B5E38; }
+.pill-c { background: #FDF0EB; color: #7D2E0B; }
+.pill-f { background: #EBF2FA; color: #0D3563; }
+.pill-k { background: #F0EBF8; color: #3D1F6B; }
+.pill-fi { background: #F0EBF8; color: #3D1F6B; }
+
+/* MENU DAYS */
+.day-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden; margin-bottom: 1rem;
+}
+.day-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 1rem 1.5rem;
+  background: var(--surface);
+  cursor: pointer;
+  border-bottom: 1px solid transparent;
+  transition: background 0.2s;
+}
+.day-header:hover { background: var(--surface2); }
+.day-header.open { border-bottom-color: var(--border); }
+.day-name {
+  font-family: 'DM Serif Display', serif;
+  font-size: 18px; color: var(--text);
+}
+.day-kcal { font-size: 13px; color: var(--text2); font-weight: 500; }
+.day-arrow {
+  color: var(--text3); transition: transform 0.3s;
+  font-size: 18px; line-height: 1;
+}
+.day-header.open .day-arrow { transform: rotate(180deg); }
+.day-meals { display: none; padding: 0.5rem 0; }
+.day-meals.open { display: block; }
+
+.meal-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 1rem; align-items: start;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--surface2);
+}
+.meal-row:last-child { border-bottom: none; }
+.meal-type {
+  font-size: 10px; font-weight: 600; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--text3); margin-bottom: 4px;
+}
+.meal-name { font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 6px; }
+.meal-macros-right { text-align: right; min-width: 80px; }
+.meal-kcal-big {
+  font-family: 'DM Serif Display', serif;
+  font-size: 20px; color: var(--text); line-height: 1;
+}
+.meal-kcal-label { font-size: 10px; color: var(--text3); }
+
+/* TRAINING */
+.exercise-table { width: 100%; border-collapse: collapse; margin-top: 0.75rem; }
+.exercise-table th {
+  font-size: 11px; font-weight: 600; letter-spacing: 0.05em;
+  text-transform: uppercase; color: var(--text3);
+  padding: 0.5rem 0.75rem; text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+.exercise-table td {
+  padding: 0.75rem; font-size: 14px; color: var(--text);
+  border-bottom: 1px solid var(--surface2); vertical-align: top;
+}
+.exercise-table tr:last-child td { border-bottom: none; }
+.exercise-table td:first-child { font-weight: 500; }
+
+/* SUPPS */
+.supp-row {
+  display: flex; align-items: flex-start; gap: 1rem;
+  padding: 1rem 0; border-bottom: 1px solid var(--surface2);
+}
+.supp-row:last-child { border-bottom: none; }
+.supp-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  margin-top: 5px; flex-shrink: 0;
+}
+.supp-name { font-weight: 500; font-size: 14px; margin-bottom: 2px; }
+.supp-desc { font-size: 13px; color: var(--text2); margin-bottom: 4px; }
+.supp-badge {
+  display: inline-block; padding: 2px 8px;
+  border-radius: 8px; font-size: 11px; font-weight: 500;
+}
+
+/* TRACKING */
+.week-tracker { margin-bottom: 1.5rem; }
+.week-label {
+  font-size: 11px; font-weight: 600; letter-spacing: 0.07em;
+  text-transform: uppercase; color: var(--text3); margin-bottom: 0.75rem;
+}
+.track-grid {
+  display: grid; grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+.track-day {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+}
+.track-day-label { font-size: 10px; color: var(--text3); font-weight: 500; }
+.track-dot {
+  width: 32px; height: 32px; border-radius: 50%;
+  border: 2px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all 0.2s;
+  font-size: 12px; color: var(--text3);
+}
+.track-dot.done { background: var(--green); border-color: var(--green); color: white; }
+.track-dot.partial { background: var(--amber-light); border-color: #E07B39; color: #7D2E0B; }
+
+.log-input-row {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 12px; margin-bottom: 1rem;
+}
+.log-field label { display: block; font-size: 12px; color: var(--text2); margin-bottom: 4px; }
+.log-field input {
+  width: 100%; padding: 8px 12px;
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  font-family: 'DM Sans', sans-serif; font-size: 14px;
+  background: var(--surface); color: var(--text);
+  transition: border-color 0.2s;
+}
+.log-field input:focus { outline: none; border-color: var(--green-mid); }
+.btn-save {
+  padding: 10px 20px; border-radius: 20px;
+  background: var(--green); color: white;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px; font-weight: 500;
+  border: none; cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-save:hover { background: var(--green-mid); }
+
+.progress-entry {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0.75rem 0; border-bottom: 1px solid var(--surface2);
+  font-size: 14px;
+}
+.progress-entry:last-child { border-bottom: none; }
+.progress-date { color: var(--text2); font-size: 13px; }
+.progress-vals { display: flex; gap: 1rem; }
+.progress-val { font-weight: 500; }
+.progress-val span { font-weight: 400; color: var(--text2); font-size: 12px; }
+
+/* LIFESTYLE */
+.habit-row {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 1rem 0; border-bottom: 1px solid var(--surface2);
+}
+.habit-row:last-child { border-bottom: none; }
+.habit-icon {
+  width: 36px; height: 36px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; flex-shrink: 0;
+}
+.habit-title { font-weight: 500; font-size: 14px; margin-bottom: 2px; }
+.habit-desc { font-size: 13px; color: var(--text2); line-height: 1.5; }
+
+/* ALERT BOX */
+.alert-box {
+  display: flex; gap: 12px; align-items: flex-start;
+  padding: 1rem 1.25rem;
+  border-radius: var(--radius-sm);
+  margin-bottom: 1rem; font-size: 13px; line-height: 1.5;
+}
+.alert-box.warning { background: #FDF5E8; border: 1px solid #F5C842; color: #7A5C00; }
+.alert-box.danger { background: var(--red-light); border: 1px solid #EEB3AD; color: #7A1C12; }
+.alert-box.info { background: var(--blue-light); border: 1px solid #9EC3EC; color: #0D3563; }
+
+/* CHARTS */
+.donut-wrap { display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap; }
+.donut-legend { display: flex; flex-direction: column; gap: 8px; flex: 1; min-width: 140px; }
+.legend-item { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.legend-name { color: var(--text2); flex: 1; }
+.legend-val { font-weight: 500; color: var(--text); }
+
+/* SHOPPING LIST */
+.shop-cat { margin-bottom: 1.25rem; }
+.shop-cat-title {
+  font-size: 12px; font-weight: 600; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--text3); margin-bottom: 8px;
+  padding-bottom: 4px; border-bottom: 1px solid var(--border);
+}
+.shop-items { display: flex; flex-wrap: wrap; gap: 6px; }
+.shop-item {
+  display: flex; align-items: center; gap: 6px;
+  padding: 5px 12px; border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--surface); font-size: 13px;
+  cursor: pointer; transition: all 0.2s; color: var(--text);
+}
+.shop-item.checked {
+  background: var(--green-light); border-color: var(--green-mid);
+  color: var(--green); text-decoration: line-through;
+}
+.shop-check { font-size: 11px; }
+
+/* TWO COL */
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+@media (max-width: 600px) { .two-col { grid-template-columns: 1fr; } }
+
+/* ── ANALYZER & DIARY ── */
+.ai-input-wrap {
+  display: flex; gap: 8px; margin-bottom: 1rem; flex-wrap: wrap;
+}
+.ai-input-wrap input, .ai-input-wrap textarea {
+  flex: 1; min-width: 200px;
+  padding: 10px 14px;
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  font-family: 'DM Sans', sans-serif; font-size: 14px;
+  background: var(--surface); color: var(--text);
+  transition: border-color 0.2s;
+}
+.ai-input-wrap input:focus, .ai-input-wrap textarea:focus {
+  outline: none; border-color: var(--green-mid);
+}
+.btn-ai {
+  padding: 10px 18px; border-radius: var(--radius-sm);
+  background: var(--green); color: white;
+  font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500;
+  border: none; cursor: pointer; white-space: nowrap;
+  transition: background 0.2s; display: flex; align-items: center; gap: 6px;
+}
+.btn-ai:hover { background: var(--green-mid); }
+.btn-ai:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-ai svg { width: 14px; height: 14px; }
+
+.result-box {
+  background: var(--surface2); border-radius: var(--radius-sm);
+  padding: 1.25rem; margin-top: 1rem; display: none;
+}
+.result-box.show { display: block; }
+
+.semaforo-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 10px; margin: 1rem 0;
+}
+.semaforo-item {
+  border-radius: var(--radius-sm); padding: 0.875rem 1rem; text-align: center;
+}
+.semaforo-item.verde { background: var(--green-light); border: 1px solid #B7DFCA; }
+.semaforo-item.ambar { background: var(--amber-light); border: 1px solid #F5C8A8; }
+.semaforo-item.rojo  { background: var(--red-light);   border: 1px solid #F0B8B2; }
+.semaforo-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing:.05em; margin-bottom: 4px; }
+.semaforo-item.verde .semaforo-label { color: var(--green); }
+.semaforo-item.ambar .semaforo-label { color: #7D3A0B; }
+.semaforo-item.rojo  .semaforo-label { color: var(--red); }
+.semaforo-val { font-family: 'DM Serif Display', serif; font-size: 22px; line-height: 1; }
+.semaforo-item.verde .semaforo-val { color: var(--green); }
+.semaforo-item.ambar .semaforo-val { color: #7D3A0B; }
+.semaforo-item.rojo  .semaforo-val { color: var(--red); }
+.semaforo-target { font-size: 11px; margin-top: 4px; }
+.semaforo-item.verde .semaforo-target { color: #2D6A4F99; }
+.semaforo-item.ambar .semaforo-target { color: #7D3A0B99; }
+.semaforo-item.rojo  .semaforo-target { color: var(--red); opacity:.7; }
+
+.ai-analysis {
+  font-size: 14px; line-height: 1.75; color: var(--text);
+  white-space: pre-wrap; margin-top: 0.75rem;
+}
+.ai-analysis strong { color: var(--green); }
+
+.saved-food-list { margin-top: 0.5rem; }
+.saved-food-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0.75rem 0; border-bottom: 1px solid var(--surface2); gap: 1rem;
+}
+.saved-food-item:last-child { border-bottom: none; }
+.saved-food-name { font-size: 14px; font-weight: 500; flex: 1; }
+.saved-food-macros { display: flex; gap: 6px; flex-wrap: wrap; }
+.del-btn {
+  background: none; border: none; color: var(--text3);
+  cursor: pointer; font-size: 16px; padding: 0 4px; line-height: 1;
+  transition: color .2s;
+}
+.del-btn:hover { color: var(--red); }
+
+.loading-dots::after {
+  content: ''; animation: dots 1.2s steps(3,end) infinite;
+}
+@keyframes dots {
+  0%   { content: ''; }
+  33%  { content: '.'; }
+  66%  { content: '..'; }
+  100% { content: '...'; }
+}
+
+.diary-day-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); overflow: hidden; margin-bottom: 1rem;
+}
+.diary-day-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 1rem 1.5rem; cursor: pointer; transition: background .2s;
+}
+.diary-day-header:hover { background: var(--surface2); }
+.diary-day-date { font-family: 'DM Serif Display', serif; font-size: 17px; }
+.diary-day-summary { font-size: 12px; color: var(--text2); margin-top: 2px; }
+.diary-day-body { display: none; padding: 1rem 1.5rem; border-top: 1px solid var(--border); }
+.diary-day-body.open { display: block; }
+
+.diary-section-label {
+  font-size: 11px; font-weight: 600; letter-spacing: .06em;
+  text-transform: uppercase; color: var(--text3); margin: 1rem 0 0.5rem;
+}
+.diary-section-label:first-child { margin-top: 0; }
+
+.wellbeing-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 1rem;
+}
+.wb-item { text-align: center; }
+.wb-label { font-size: 11px; color: var(--text3); margin-bottom: 4px; }
+.wb-val {
+  font-family: 'DM Serif Display', serif; font-size: 22px;
+  line-height: 1;
+}
+.star-row { display: flex; gap: 2px; justify-content: center; margin-top: 2px; }
+.star { font-size: 13px; opacity: .3; }
+.star.on { opacity: 1; }
+
+.tag-pill {
+  display: inline-block; padding: 3px 10px;
+  border-radius: 12px; font-size: 12px; margin: 2px;
+  background: var(--surface2); color: var(--text2);
+}
+/* PRINT */
+@media print {
+  .nav, .export-bar, .btn-export, .btn-save { display: none !important; }
+  .section { display: block !important; }
+  body { background: white; }
+  .card, .day-card, .metric-card { break-inside: avoid; }
+}
+
+/* RESPONSIVE */
+@media (max-width: 640px) {
+  .nav-tabs { gap: 0; }
+  .nav-tab { padding: 6px 10px; font-size: 12px; }
+  .main { padding: 1.5rem 1rem 4rem; }
+  .meal-row { grid-template-columns: 1fr; }
+  .meal-macros-right { text-align: left; }
+  .metrics-grid { grid-template-columns: repeat(2, 1fr); }
+  .track-grid { gap: 4px; }
+  .track-dot { width: 28px; height: 28px; }
+  .log-input-row { grid-template-columns: 1fr; }
+}
+
+/* ANIMATIONS */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.section.active > * { animation: fadeUp 0.35s ease both; }
+.section.active > *:nth-child(2) { animation-delay: 0.05s; }
+.section.active > *:nth-child(3) { animation-delay: 0.10s; }
+.section.active > *:nth-child(4) { animation-delay: 0.15s; }
+.section.active > *:nth-child(5) { animation-delay: 0.20s; }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <div class="nav-logo">Plan Salud</div>
+    <div class="nav-tabs">
+      <button class="nav-tab active" onclick="showSection('resumen')">Resumen</button>
+      <button class="nav-tab" onclick="showSection('nutricion')">Nutrición</button>
+      <button class="nav-tab" onclick="showSection('menus')">Menús</button>
+      <button class="nav-tab" onclick="showSection('entreno')">Entreno</button>
+      <button class="nav-tab" onclick="showSection('suplementos')">Suplementos</button>
+      <button class="nav-tab" onclick="showSection('compra')">Compra</button>
+      <button class="nav-tab" onclick="showSection('habitos')">Hábitos</button>
+      <button class="nav-tab" onclick="showSection('seguimiento')">Seguimiento</button>
+      <button class="nav-tab" onclick="showSection('analizar')">🔍 Analizar</button>
+      <button class="nav-tab" onclick="showSection('diario')">📓 Diario</button>
+    </div>
+  </div>
+</nav>
+
+<main class="main">
+
+<!-- ═══════════════════════════════════════════════════════
+     SECCIÓN: RESUMEN
+════════════════════════════════════════════════════════════ -->
+<section class="section active" id="sec-resumen">
+  <div class="page-header">
+    <h1>Tu plan de salud</h1>
+    <p>Mujer · 53 años · Menopausia · Perfil metabólico activo</p>
+  </div>
+
+  <div class="export-bar">
+    <button class="btn-export" onclick="printSection('sec-resumen')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+      Imprimir
+    </button>
+    <button class="btn-export" onclick="exportPDF('sec-resumen','Resumen del Plan')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Descargar PDF
+    </button>
+  </div>
+
+  <div class="alert-box danger">
+    <div>⚠️</div>
+    <div><strong>Supervisión médica recomendada.</strong> Tu HOMA-IR de 8,2 indica resistencia a la insulina significativa. Este plan está alineado con las guías clínicas (ADA, ACSM) pero requiere seguimiento con tu médico o endocrinólogo.</div>
+  </div>
+
+  <div class="metrics-grid">
+    <div class="metric-card green">
+      <div class="metric-label">Peso actual</div>
+      <div class="metric-value">69</div>
+      <div class="metric-unit">kg</div>
+      <div class="metric-sub">Objetivo: 60 kg</div>
+    </div>
+    <div class="metric-card amber">
+      <div class="metric-label">Calorías objetivo</div>
+      <div class="metric-value">1.550</div>
+      <div class="metric-unit">kcal/día</div>
+      <div class="metric-sub">Déficit moderado ~350 kcal</div>
+    </div>
+    <div class="metric-card blue">
+      <div class="metric-label">Proteína mínima</div>
+      <div class="metric-value">105</div>
+      <div class="metric-unit">g/día</div>
+      <div class="metric-sub">1,6 g/kg · preservar músculo</div>
+    </div>
+    <div class="metric-card purple">
+      <div class="metric-label">HOMA-IR</div>
+      <div class="metric-value">8,2</div>
+      <div class="metric-unit">resistencia insulina</div>
+      <div class="metric-sub">Normal &lt;2,5 · a trabajar</div>
+    </div>
+    <div class="metric-card red">
+      <div class="metric-label">LDL colesterol</div>
+      <div class="metric-value">157</div>
+      <div class="metric-unit">mg/dL</div>
+      <div class="metric-sub">Objetivo: &lt;130 con dieta</div>
+    </div>
+    <div class="metric-card green">
+      <div class="metric-label">Horizonte</div>
+      <div class="metric-value">6–9</div>
+      <div class="metric-unit">meses</div>
+      <div class="metric-sub">Pérdida sostenible ~0,4 kg/sem</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Distribución de macros diaria</div>
+    <div class="donut-wrap">
+      <svg width="120" height="120" viewBox="0 0 120 120">
+        <circle cx="60" cy="60" r="48" fill="none" stroke="#F0EDE8" stroke-width="16"/>
+        <circle cx="60" cy="60" r="48" fill="none" stroke="#52B788" stroke-width="16"
+          stroke-dasharray="120 182" stroke-dashoffset="0" transform="rotate(-90 60 60)"/>
+        <circle cx="60" cy="60" r="48" fill="none" stroke="#E07B39" stroke-width="16"
+          stroke-dasharray="82 220" stroke-dashoffset="-120" transform="rotate(-90 60 60)"/>
+        <circle cx="60" cy="60" r="48" fill="none" stroke="#4A90D9" stroke-width="16"
+          stroke-dasharray="100 202" stroke-dashoffset="-202" transform="rotate(-90 60 60)"/>
+        <text x="60" y="55" text-anchor="middle" font-family="DM Serif Display,serif" font-size="16" fill="#1A1814">1.550</text>
+        <text x="60" y="68" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="9" fill="#9E9892">kcal/día</text>
+      </svg>
+      <div class="donut-legend">
+        <div class="legend-item">
+          <div class="legend-dot" style="background:#52B788"></div>
+          <span class="legend-name">Proteína</span>
+          <span class="legend-val">105–115 g</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot" style="background:#E07B39"></div>
+          <span class="legend-name">Carbohidratos</span>
+          <span class="legend-val">140–160 g</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot" style="background:#4A90D9"></div>
+          <span class="legend-name">Grasas</span>
+          <span class="legend-val">50–58 g</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot" style="background:#8B5CF6"></div>
+          <span class="legend-name">Fibra</span>
+          <span class="legend-val">28–35 g</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="two-col">
+    <div class="card">
+      <div class="card-title">Estrategia nutricional</div>
+      <div style="font-size:14px;color:var(--text2);line-height:1.7;">
+        Patrón <strong style="color:var(--text)">mediterráneo adaptado</strong> con control glucémico. Alta proteína para preservar músculo en menopausia. Carbohidratos de bajo índice glucémico. Fibra soluble prioritaria para LDL y estreñimiento. Déficit conservador de 300–400 kcal para no elevar cortisol.
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Estrategia de entrenamiento</div>
+      <div style="font-size:14px;color:var(--text2);line-height:1.7;">
+        <strong style="color:var(--text)">Fuerza con bandas</strong> 2 días/semana para preservar músculo, mejorar insulinosensibilidad y densidad ósea. <strong style="color:var(--text)">Caminata</strong> 2 días/semana de 1,5–2 h como herramienta metabólica principal (~700–900 kcal semanales adicionales).
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Hoja de ruta realista</div>
+    <div style="display:flex;flex-direction:column;gap:0;">
+      <div class="progress-entry">
+        <div><strong>Semanas 1–2</strong><div style="font-size:13px;color:var(--text2)">Adaptación, pérdida de agua y glucógeno 0,5–1,5 kg</div></div>
+        <div class="progress-vals"><div class="progress-val" style="color:var(--text3)">Inicio</div></div>
+      </div>
+      <div class="progress-entry">
+        <div><strong>Semanas 3–6</strong><div style="font-size:13px;color:var(--text2)">Pérdida de grasa real 0,3–0,5 kg/semana. Mejora digestión.</div></div>
+        <div class="progress-vals"><div class="progress-val" style="color:var(--green)">~1–2 kg</div></div>
+      </div>
+      <div class="progress-entry">
+        <div><strong>Mes 3</strong><div style="font-size:13px;color:var(--text2)">Revisión analítica: HOMA-IR, LDL, HDL. El ejercicio mejora estos en 8–12 semanas.</div></div>
+        <div class="progress-vals"><div class="progress-val" style="color:var(--green)">~3–4 kg</div></div>
+      </div>
+      <div class="progress-entry" style="border:none">
+        <div><strong>Mes 6–9</strong><div style="font-size:13px;color:var(--text2)">Objetivo 60–62 kg con mejora de composición corporal real.</div></div>
+        <div class="progress-vals"><div class="progress-val" style="color:var(--green)">~7–9 kg</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     SECCIÓN: NUTRICIÓN
+════════════════════════════════════════════════════════════ -->
+<section class="section" id="sec-nutricion">
+  <div class="page-header">
+    <h1>Plan nutricional</h1>
+    <p>Déficit moderado · Alta proteína · Control glucémico</p>
+  </div>
+  <div class="export-bar">
+    <button class="btn-export" onclick="printSection('sec-nutricion')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>Imprimir
+    </button>
+    <button class="btn-export" onclick="exportPDF('sec-nutricion','Plan Nutricional')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>PDF
+    </button>
+  </div>
+
+  <div class="alert-box info">
+    <div>ℹ️</div>
+    <div><strong>Caminatas actualizadas:</strong> Tus 2 caminatas semanales de 1,5–2 h suponen ~700–900 kcal adicionales. El TDEE real se eleva a ~2.050–2.100 kcal. El rango calórico objetivo de 1.500–1.600 kcal genera un déficit efectivo y seguro de 450–600 kcal en esos días.</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Objetivos de macronutrientes diarios</div>
+    <div class="macro-bar-wrap">
+      <div class="macro-bar-label"><span>Proteína</span><span>105–115 g · 420–460 kcal</span></div>
+      <div class="macro-bar-track"><div class="macro-bar-fill fill-protein" style="width:29%"></div></div>
+    </div>
+    <div class="macro-bar-wrap">
+      <div class="macro-bar-label"><span>Carbohidratos</span><span>140–160 g · 560–640 kcal</span></div>
+      <div class="macro-bar-track"><div class="macro-bar-fill fill-carbs" style="width:40%"></div></div>
+    </div>
+    <div class="macro-bar-wrap">
+      <div class="macro-bar-label"><span>Grasas</span><span>50–58 g · 450–520 kcal</span></div>
+      <div class="macro-bar-track"><div class="macro-bar-fill fill-fat" style="width:31%"></div></div>
+    </div>
+    <div class="macro-bar-wrap">
+      <div class="macro-bar-label"><span>Fibra</span><span>28–35 g · clave para LDL y tránsito</span></div>
+      <div class="macro-bar-track"><div class="macro-bar-fill fill-fiber" style="width:22%"></div></div>
+    </div>
+    <div style="margin-top:1rem;font-size:13px;color:var(--text2)">Agua: 1,8–2,2 L/día · Sodio: &lt;2 g/día recomendable con tu perfil lipídico</div>
+  </div>
+
+  <div class="two-col">
+    <div class="card">
+      <div class="card-title">Distribución por comida</div>
+      <div style="font-size:14px;line-height:1.8;">
+        <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--surface2)"><span style="color:var(--text2)">Desayuno</span><span style="font-weight:500">400–450 kcal · 30–35 g prot</span></div>
+        <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--surface2)"><span style="color:var(--text2)">Comida</span><span style="font-weight:500">600–650 kcal · 35–40 g prot</span></div>
+        <div style="display:flex;justify-content:space-between;padding:4px 0"><span style="color:var(--text2)">Cena</span><span style="font-weight:500">450–500 kcal · 30–35 g prot</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Días de caminata larga</div>
+      <div style="font-size:14px;color:var(--text2);line-height:1.7;">
+        En días de caminata de 1,5–2 h puedes añadir <strong style="color:var(--text)">150–200 kcal extra</strong> (snack proteico o porción adicional de cereal integral) sin salir del déficit semanal. No es obligatorio, pero ayuda a la adherencia y recuperación.
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Alimentos prioritarios</div>
+    <div class="two-col" style="gap:1.5rem;">
+      <div>
+        <div style="font-size:12px;font-weight:600;color:var(--green);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em">Proteínas</div>
+        <div style="font-size:13px;color:var(--text2);line-height:1.8">Huevos · Pechuga pollo · Pavo · Merluza · Dorada · Salmón (2–3×/sem) · Sardinas · Atún natural · Gambas · Mejillones · Yogur griego 0% · Requesón · Queso fresco · Lentejas · Garbanzos</div>
+      </div>
+      <div>
+        <div style="font-size:12px;font-weight:600;color:var(--amber);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em">Carbohidratos de calidad</div>
+        <div style="font-size:13px;color:var(--text2);line-height:1.8">Avena en copos · Boniato · Arroz integral · Quinoa · Legumbres · Pan centeno/masa madre · Manzana · Pera · Frutos rojos · Kiwi</div>
+        <div style="font-size:12px;font-weight:600;color:#4A90D9;margin:10px 0 8px;text-transform:uppercase;letter-spacing:.05em">Grasas saludables</div>
+        <div style="font-size:13px;color:var(--text2);line-height:1.8">AOVE (2–3 cdas/día) · Aguacate · Nueces · Almendras · Omega-3 de pescado azul</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Alimentos a limitar — con justificación</div>
+    <div style="display:flex;flex-direction:column;gap:0">
+      <div class="supp-row">
+        <div class="supp-dot" style="background:#E07B39"></div>
+        <div><div class="supp-name">Harinas refinadas y azúcares añadidos</div><div class="supp-desc">Elevan glucemia rápida → agravan resistencia a la insulina (HOMA-IR 8,2). No eliminar, reducir y sustituir por versión integral.</div></div>
+      </div>
+      <div class="supp-row">
+        <div class="supp-dot" style="background:var(--red)"></div>
+        <div><div class="supp-name">Ultraprocesados y fritos en aceite reutilizado</div><div class="supp-desc">Grasas trans y saturadas en exceso elevan LDL (ya en 157 mg/dL) y empeoran el perfil metabólico. Evitar.</div></div>
+      </div>
+      <div class="supp-row">
+        <div class="supp-dot" style="background:#9E9892"></div>
+        <div><div class="supp-name">Embutidos grasos (chorizo, beicon, salchichón)</div><div class="supp-desc">Grasas saturadas + sodio. Consumo ocasional, no habitual.</div></div>
+      </div>
+      <div class="supp-row" style="border:none">
+        <div class="supp-dot" style="background:#C8A8E0"></div>
+        <div><div class="supp-name">Chocolate con leche / blanco</div><div class="supp-desc">Alta densidad calórica + azúcar + grasa saturada. Chocolate negro ≥85% en pequeña cantidad tiene evidencia neutra o positiva para LDL según AHA.</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Estrategias para comer fuera de casa</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:0.5rem">
+      <div style="background:var(--green-light);border-radius:var(--radius-sm);padding:1rem">
+        <div style="font-size:12px;font-weight:600;color:var(--green);margin-bottom:6px">PIDE</div>
+        <div style="font-size:13px;color:#1B5E38;line-height:1.6">Proteína a la plancha o al horno · Ensalada o verdura · AOVE · Agua o infusión · Fruta de postre</div>
+      </div>
+      <div style="background:var(--red-light);border-radius:var(--radius-sm);padding:1rem">
+        <div style="font-size:12px;font-weight:600;color:var(--red);margin-bottom:6px">EVITA</div>
+        <div style="font-size:13px;color:#7A1C12;line-height:1.6">Salsas comerciales · Rebozados y fritos · Postre azucarado · Pan en exceso · Menú con doble frito</div>
+      </div>
+      <div style="background:var(--blue-light);border-radius:var(--radius-sm);padding:1rem">
+        <div style="font-size:12px;font-weight:600;color:var(--blue);margin-bottom:6px">ESTRATEGIA</div>
+        <div style="font-size:13px;color:#0D3563;line-height:1.6">Pide el pan aparte · Pregunta el método de cocción · Menú del día: ensalada + proteína plancha · No restrinjas el día anterior</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     SECCIÓN: MENÚS
+════════════════════════════════════════════════════════════ -->
+<section class="section" id="sec-menus">
+  <div class="page-header">
+    <h1>Menú semanal</h1>
+    <p>Con proteínas, hidratos, grasas y calorías por comida</p>
+  </div>
+  <div class="export-bar">
+    <button class="btn-export" onclick="printSection('sec-menus')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>Imprimir
+    </button>
+    <button class="btn-export" onclick="exportPDF('sec-menus','Menú Semanal')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>PDF
+    </button>
+  </div>
+
+  <div id="menu-container"></div>
+
+  <div class="card" style="margin-top:1rem">
+    <div class="card-title">Snack opcional en días de caminata larga</div>
+    <div style="font-size:14px;color:var(--text2);line-height:1.7">
+      En días de caminata de 1,5–2 h añade entre comidas: <strong style="color:var(--text)">20–25 g nueces o almendras + infusión</strong> (~150 kcal · 4 g prot · 4 g HC · 13 g grasas) o <strong style="color:var(--text)">1 yogur griego 0% + frutos rojos</strong> (~120 kcal · 12 g prot · 10 g HC · 0 g grasas).
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     SECCIÓN: ENTRENAMIENTO
+════════════════════════════════════════════════════════════ -->
+<section class="section" id="sec-entreno">
+  <div class="page-header">
+    <h1>Plan de entrenamiento</h1>
+    <p>Fuerza · Caminata larga · Actividad diaria</p>
+  </div>
+  <div class="export-bar">
+    <button class="btn-export" onclick="printSection('sec-entreno')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>Imprimir
+    </button>
+    <button class="btn-export" onclick="exportPDF('sec-entreno','Plan de Entrenamiento')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>PDF
+    </button>
+  </div>
+
+  <div class="alert-box info">
+    <div>🚶</div>
+    <div><strong>Caminata actualizada.</strong> Tus 2 sesiones semanales de 1,5–2 h son un activo metabólico importante. A ritmo moderado suponen ~350–450 kcal/sesión → 700–900 kcal semanales adicionales. Esto mejora directamente el HOMA-IR y el perfil lipídico según evidencia ACSM.</div>
+  </div>
+
+  <div class="metrics-grid" style="grid-template-columns:repeat(auto-fit,minmax(130px,1fr))">
+    <div class="metric-card green">
+      <div class="metric-label">Fuerza</div>
+      <div class="metric-value">2</div>
+      <div class="metric-unit">días/semana</div>
+      <div class="metric-sub">30 min · bandas</div>
+    </div>
+    <div class="metric-card blue">
+      <div class="metric-label">Caminata</div>
+      <div class="metric-value">2</div>
+      <div class="metric-unit">días/semana</div>
+      <div class="metric-sub">1,5–2 h · ritmo moderado</div>
+    </div>
+    <div class="metric-card amber">
+      <div class="metric-label">Gasto extra</div>
+      <div class="metric-value">~800</div>
+      <div class="metric-unit">kcal/semana</div>
+      <div class="metric-sub">solo caminatas</div>
+    </div>
+    <div class="metric-card purple">
+      <div class="metric-label">NEAT diario</div>
+      <div class="metric-value">6.000</div>
+      <div class="metric-unit">pasos objetivo</div>
+      <div class="metric-sub">días sin actividad programada</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Planificación semanal</div>
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;text-align:center">
+      <div>
+        <div style="font-size:10px;font-weight:600;color:var(--text3);margin-bottom:4px">LUN</div>
+        <div style="background:var(--purple-light);border-radius:var(--radius-sm);padding:8px 2px;font-size:11px;color:var(--purple)">Fuerza<br>A</div>
+      </div>
+      <div>
+        <div style="font-size:10px;font-weight:600;color:var(--text3);margin-bottom:4px">MAR</div>
+        <div style="background:var(--green-light);border-radius:var(--radius-sm);padding:8px 2px;font-size:11px;color:var(--green)">Caminata<br>1,5–2h</div>
+      </div>
+      <div>
+        <div style="font-size:10px;font-weight:600;color:var(--text3);margin-bottom:4px">MIÉ</div>
+        <div style="background:var(--surface2);border-radius:var(--radius-sm);padding:8px 2px;font-size:11px;color:var(--text3)">Descanso<br>activo</div>
+      </div>
+      <div>
+        <div style="font-size:10px;font-weight:600;color:var(--text3);margin-bottom:4px">JUE</div>
+        <div style="background:var(--purple-light);border-radius:var(--radius-sm);padding:8px 2px;font-size:11px;color:var(--purple)">Fuerza<br>B</div>
+      </div>
+      <div>
+        <div style="font-size:10px;font-weight:600;color:var(--text3);margin-bottom:4px">VIE</div>
+        <div style="background:var(--surface2);border-radius:var(--radius-sm);padding:8px 2px;font-size:11px;color:var(--text3)">Descanso<br>activo</div>
+      </div>
+      <div>
+        <div style="font-size:10px;font-weight:600;color:var(--text3);margin-bottom:4px">SÁB</div>
+        <div style="background:var(--green-light);border-radius:var(--radius-sm);padding:8px 2px;font-size:11px;color:var(--green)">Caminata<br>1,5–2h</div>
+      </div>
+      <div>
+        <div style="font-size:10px;font-weight:600;color:var(--text3);margin-bottom:4px">DOM</div>
+        <div style="background:var(--surface2);border-radius:var(--radius-sm);padding:8px 2px;font-size:11px;color:var(--text3)">Descanso<br>total</div>
+      </div>
+    </div>
+    <div style="font-size:12px;color:var(--text3);margin-top:10px">Descanso activo = 6.000 pasos mínimo, estiramientos suaves.</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Día A — Tren inferior + Core (30 min)</div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:12px">5 min movilidad → 20 min fuerza → 5 min estiramientos</div>
+    <div style="overflow-x:auto">
+    <table class="exercise-table">
+      <thead><tr><th>Ejercicio</th><th>Series</th><th>Reps</th><th>Descanso</th><th>Notas</th></tr></thead>
+      <tbody>
+        <tr><td>Sentadilla con banda sobre rodillas</td><td>3</td><td>12–15</td><td>60 seg</td><td>Espalda recta, rodillas al 2.º dedo</td></tr>
+        <tr><td>Puente de glúteos con banda</td><td>3</td><td>15</td><td>60 seg</td><td>Apretón en el punto alto 1 seg</td></tr>
+        <tr><td>Patada glúteo en cuadrupedia con banda</td><td>3</td><td>12 c/lado</td><td>45 seg</td><td>Cadera estable, sin rotar</td></tr>
+        <tr><td>Abducción lateral con banda (de pie)</td><td>3</td><td>15 c/lado</td><td>45 seg</td><td>Movimiento controlado</td></tr>
+        <tr><td>Plancha isométrica</td><td>3</td><td>20–30 seg</td><td>45 seg</td><td>Progresa 5 seg cada 2 semanas</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Día B — Tren superior + Core (30 min)</div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:12px">5 min movilidad → 20 min fuerza → 5 min estiramientos</div>
+    <div style="overflow-x:auto">
+    <table class="exercise-table">
+      <thead><tr><th>Ejercicio</th><th>Series</th><th>Reps</th><th>Descanso</th><th>Notas</th></tr></thead>
+      <tbody>
+        <tr><td>Remo con banda (espalda)</td><td>3</td><td>12–15</td><td>60 seg</td><td>Codos pegados al cuerpo</td></tr>
+        <tr><td>Press de hombro con banda</td><td>3</td><td>12</td><td>60 seg</td><td>Núcleo activado, no arquear</td></tr>
+        <tr><td>Curl de bíceps con banda</td><td>3</td><td>12–15</td><td>45 seg</td><td>Codos fijos, movimiento limpio</td></tr>
+        <tr><td>Extensión tríceps sobre cabeza</td><td>3</td><td>12–15</td><td>45 seg</td><td>Codo apuntando al techo</td></tr>
+        <tr><td>Bird-dog</td><td>3</td><td>10 c/lado</td><td>45 seg</td><td>Columna neutra, lento</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Progresión por fases</div>
+    <div style="display:flex;flex-direction:column;gap:0">
+      <div class="progress-entry">
+        <div><strong>Semanas 1–3</strong><div style="font-size:13px;color:var(--text2)">Aprende la técnica. Banda de baja resistencia. Prioriza que el movimiento sea correcto.</div></div>
+      </div>
+      <div class="progress-entry">
+        <div><strong>Semanas 4–6</strong><div style="font-size:13px;color:var(--text2)">Aumenta repeticiones al límite superior o añade 1 serie a los ejercicios principales.</div></div>
+      </div>
+      <div class="progress-entry">
+        <div><strong>Semanas 7–12</strong><div style="font-size:13px;color:var(--text2)">Sube resistencia de banda o añade 1 serie más. Si puedes hacer 15+ reps sin esfuerzo, la banda es demasiado fácil.</div></div>
+      </div>
+      <div class="progress-entry" style="border:none">
+        <div><strong>Señales de parada</strong><div style="font-size:13px;color:var(--text2)">Dolor articular (no muscular) persistente · Fatiga extrema que no mejora con descanso · Insomnio agravado post-entreno (entrena por la mañana).</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     SECCIÓN: SUPLEMENTOS
+════════════════════════════════════════════════════════════ -->
+<section class="section" id="sec-suplementos">
+  <div class="page-header">
+    <h1>Suplementación</h1>
+    <p>Solo lo respaldado por evidencia · Ninguno sustituye la dieta</p>
+  </div>
+  <div class="export-bar">
+    <button class="btn-export" onclick="printSection('sec-suplementos')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>Imprimir
+    </button>
+    <button class="btn-export" onclick="exportPDF('sec-suplementos','Suplementación')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>PDF
+    </button>
+  </div>
+  <div class="alert-box warning">
+    <div>⚠️</div>
+    <div>Consulta con tu médico antes de iniciar cualquier suplemento, especialmente omega-3 si en el futuro tomas anticoagulantes, y vitamina D hasta confirmar tus niveles en analítica.</div>
+  </div>
+  <div class="card">
+    <div class="supp-row">
+      <div class="supp-dot" style="background:#E07B39"></div>
+      <div>
+        <div class="supp-name">Omega-3 (EPA + DHA)</div>
+        <div class="supp-desc">Evidencia sólida para triglicéridos y mejora de HDL (AHA Scientific Advisory 2019). Útil en tu perfil: HDL bajo (42) y LDL elevado (157).</div>
+        <div style="margin-top:4px"><span class="supp-badge" style="background:#FDF0EB;color:#7D2E0B">1–2 g EPA+DHA/día</span> <span class="supp-badge" style="background:#E8F5EE;color:#1B5E38;margin-left:4px">Evidencia sólida (AHA)</span></div>
+        <div style="font-size:12px;color:var(--text3);margin-top:4px">Tomar con la comida principal. Busca productos con certificación IFOS o similar.</div>
+      </div>
+    </div>
+    <div class="supp-row">
+      <div class="supp-dot" style="background:#F5D020"></div>
+      <div>
+        <div class="supp-name">Vitamina D3</div>
+        <div class="supp-desc">Déficit muy prevalente en menopausia. Impacto en masa muscular, inmunidad y posiblemente insulinosensibilidad. Requiere analítica previa para dosificar correctamente.</div>
+        <div style="margin-top:4px"><span class="supp-badge" style="background:#FDF5E8;color:#7A5C00">1.000–2.000 UI/día (ajustar según analítica)</span></div>
+        <div style="font-size:12px;color:var(--text3);margin-top:4px">Si 25-OH-D &lt;30 ng/mL → suplementar. Si &lt;20 ng/mL → dosis de carga bajo prescripción médica.</div>
+      </div>
+    </div>
+    <div class="supp-row">
+      <div class="supp-dot" style="background:#8B5CF6"></div>
+      <div>
+        <div class="supp-name">Magnesio (glicinato o malato)</div>
+        <div class="supp-desc">Frecuentemente bajo en estrés crónico. Evidencia moderada para calidad del sueño y sensibilidad a la insulina. El glicinato es el más tolerable digestivamente.</div>
+        <div style="margin-top:4px"><span class="supp-badge" style="background:#F0EBF8;color:#3D1F6B">200–300 mg/noche</span> <span class="supp-badge" style="background:#EBF2FA;color:#0D3563;margin-left:4px">Evidencia moderada</span></div>
+      </div>
+    </div>
+    <div class="supp-row">
+      <div class="supp-dot" style="background:#52B788"></div>
+      <div>
+        <div class="supp-name">Creatina monohidrato</div>
+        <div class="supp-desc">Evidencia creciente en mujeres posmenopáusicas para preservar masa muscular y fuerza. Segura, sin ciclos necesarios, barata. Puede causar ligera retención de agua inicial (no grasa).</div>
+        <div style="margin-top:4px"><span class="supp-badge" style="background:#E8F5EE;color:#1B5E38">3–5 g/día · cualquier momento</span> <span class="supp-badge" style="background:#EBF2FA;color:#0D3563;margin-left:4px">Evidencia moderada-buena</span></div>
+      </div>
+    </div>
+    <div class="supp-row" style="border:none">
+      <div class="supp-dot" style="background:#9E9892"></div>
+      <div>
+        <div class="supp-name">Psyllium (si persiste el estreñimiento)</div>
+        <div class="supp-desc">Fibra soluble con evidencia sólida para tránsito intestinal y reducción de LDL. Solo si con la dieta no se resuelve el estreñimiento.</div>
+        <div style="margin-top:4px"><span class="supp-badge" style="background:var(--surface2);color:var(--text2)">5–10 g/día con agua abundante</span> <span class="supp-badge" style="background:#E8F5EE;color:#1B5E38;margin-left:4px">Evidencia sólida (EFSA)</span></div>
+        <div style="font-size:12px;color:var(--text3);margin-top:4px">Aumentar dosis de agua al tomarlo. Empezar con 5 g y subir progresivamente.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     SECCIÓN: COMPRA
+════════════════════════════════════════════════════════════ -->
+<section class="section" id="sec-compra">
+  <div class="page-header">
+    <h1>Lista de compra</h1>
+    <p>Toca cada producto para marcarlo como comprado</p>
+  </div>
+  <div class="export-bar">
+    <button class="btn-export" onclick="printSection('sec-compra')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>Imprimir
+    </button>
+    <button class="btn-export" onclick="exportPDF('sec-compra','Lista de Compra')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>PDF
+    </button>
+    <button class="btn-export" onclick="resetShop()">↺ Reiniciar</button>
+  </div>
+  <div class="card" id="shop-card"></div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     SECCIÓN: HÁBITOS
+════════════════════════════════════════════════════════════ -->
+<section class="section" id="sec-habitos">
+  <div class="page-header">
+    <h1>Hábitos y estilo de vida</h1>
+    <p>Los factores de mayor impacto en tu perfil metabólico</p>
+  </div>
+  <div class="export-bar">
+    <button class="btn-export" onclick="printSection('sec-habitos')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>Imprimir
+    </button>
+    <button class="btn-export" onclick="exportPDF('sec-habitos','Hábitos y Estilo de Vida')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>PDF
+    </button>
+  </div>
+  <div class="card">
+    <div class="card-title">Por orden de impacto en tu caso</div>
+    <div class="habit-row">
+      <div class="habit-icon" style="background:#E8F5EE">🚶</div>
+      <div>
+        <div class="habit-title">1. Caminata diaria (o larga 2×/sem)</div>
+        <div class="habit-desc">Es la intervención con mayor evidencia para resistencia a la insulina y colesterol en tu perfil. Ya la haces 2 veces a la semana en sesiones largas. Los días restantes, 6.000 pasos mínimo.</div>
+      </div>
+    </div>
+    <div class="habit-row">
+      <div class="habit-icon" style="background:#EBF2FA">🥩</div>
+      <div>
+        <div class="habit-title">2. Proteína en cada comida</div>
+        <div class="habit-desc">30–40 g por toma para estimular síntesis muscular (MPS) y mejorar saciedad. La ausencia de sensación de saciedad que describes es frecuente en resistencia a la insulina. Mejora con el tiempo al mejorar la insulinosensibilidad.</div>
+      </div>
+    </div>
+    <div class="habit-row">
+      <div class="habit-icon" style="background:#F0EBF8">🌾</div>
+      <div>
+        <div class="habit-title">3. Fibra soluble diaria</div>
+        <div class="habit-desc">Avena en el desayuno, legumbre al menos 4×/semana, 1 cucharada de lino molido diaria. Impacto directo sobre LDL, estreñimiento y microbiota. Aumentar progresivamente para no empeorar los gases inicialmente.</div>
+      </div>
+    </div>
+    <div class="habit-row">
+      <div class="habit-icon" style="background:#FDF5E8">😴</div>
+      <div>
+        <div class="habit-title">4. Sueño (prioridad alta)</div>
+        <div class="habit-desc">El mal sueño eleva cortisol → agrava resistencia a la insulina → dificulta pérdida de grasa. Acciones concretas: temperatura 17–19°C, sin pantallas 45 min antes, hora de despertar fija. Si hay sofocos nocturnos, consulta con ginecólogo sobre THS — tiene evidencia para mejorar sueño y composición corporal en menopausia.</div>
+      </div>
+    </div>
+    <div class="habit-row">
+      <div class="habit-icon" style="background:#FDEEEC">🧘</div>
+      <div>
+        <div class="habit-title">5. Gestión del estrés crónico</div>
+        <div class="habit-desc">Cortisol elevado crónico bloquea parcialmente la pérdida de grasa abdominal. El estrés no se elimina, se gestiona. La caminata ya reduce cortisol de forma aguda. Añadir: 5 min de respiración diafragmática diaria y exposición a luz natural por la mañana tienen evidencia moderada para el ritmo circadiano y cortisol.</div>
+      </div>
+    </div>
+    <div class="habit-row" style="border:none">
+      <div class="habit-icon" style="background:#E8F5EE">💧</div>
+      <div>
+        <div class="habit-title">6. Hidratación consciente</div>
+        <div class="habit-desc">1,8–2,2 L/día. Empezar el día con 2 vasos de agua antes del desayuno. Fundamental para el estreñimiento junto con la fibra. Agua, infusiones sin azúcar y caldo vegetal cuentan.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Señales para ajustar el plan</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px">
+      <div style="background:var(--red-light);border-radius:var(--radius-sm);padding:1rem">
+        <div style="font-size:12px;font-weight:600;color:var(--red);margin-bottom:8px">BAJA CALORÍAS si...</div>
+        <div style="font-size:13px;color:#7A1C12;line-height:1.7">No hay pérdida en 3–4 semanas · Adherencia buena · Caminatas se mantienen · Revisar snacks no registrados</div>
+      </div>
+      <div style="background:var(--green-light);border-radius:var(--radius-sm);padding:1rem">
+        <div style="font-size:12px;font-weight:600;color:var(--green);margin-bottom:8px">SUBE CALORÍAS si...</div>
+        <div style="font-size:13px;color:#1B5E38;line-height:1.7">Pérdida &gt;1 kg/semana constante · Fatiga extrema · Rendimiento muy reducido · Irritabilidad marcada</div>
+      </div>
+      <div style="background:var(--blue-light);border-radius:var(--radius-sm);padding:1rem">
+        <div style="font-size:12px;font-weight:600;color:var(--blue);margin-bottom:8px">REVISA ANALÍTICA a los 3 meses</div>
+        <div style="font-size:13px;color:#0D3563;line-height:1.7">HOMA-IR · LDL · HDL · Colesterol total · Vitamina D · Glucosa en ayunas</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     SECCIÓN: SEGUIMIENTO
+════════════════════════════════════════════════════════════ -->
+<section class="section" id="sec-seguimiento">
+  <div class="page-header">
+    <h1>Seguimiento semanal</h1>
+    <p>Registra tu evolución · Los datos se guardan automáticamente</p>
+  </div>
+  <div class="export-bar">
+    <button class="btn-export" onclick="printSection('sec-seguimiento')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>Imprimir
+    </button>
+    <button class="btn-export" onclick="exportPDF('sec-seguimiento','Seguimiento')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>PDF
+    </button>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Registrar nueva medición</div>
+    <div class="log-input-row">
+      <div class="log-field"><label>Peso (kg)</label><input type="number" id="log-peso" step="0.1" placeholder="69.0"></div>
+      <div class="log-field"><label>Cintura (cm)</label><input type="number" id="log-cintura" step="0.5" placeholder="80"></div>
+      <div class="log-field"><label>Energía (1–10)</label><input type="number" id="log-energia" min="1" max="10" placeholder="7"></div>
+      <div class="log-field"><label>Sueño (1–10)</label><input type="number" id="log-sueno" min="1" max="10" placeholder="5"></div>
+    </div>
+    <button class="btn-save" onclick="saveLog()">Guardar medición</button>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Historial de mediciones</div>
+    <div id="log-list"><div style="font-size:14px;color:var(--text3);text-align:center;padding:2rem 0">Aún no hay mediciones guardadas.<br>Registra la primera arriba.</div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Métricas semanales a revisar</div>
+    <div style="display:flex;flex-direction:column;gap:0">
+      <div class="habit-row">
+        <div class="habit-icon" style="background:var(--green-light);font-size:14px">⚖️</div>
+        <div><div class="habit-title">Peso corporal</div><div class="habit-desc">Mismas condiciones: mañana, ayunas, sin ropa, mismo día de la semana. Variaciones de ±1 kg por líquidos son normales. No uses el peso diario como referencia.</div></div>
+      </div>
+      <div class="habit-row">
+        <div class="habit-icon" style="background:var(--amber-light);font-size:14px">📏</div>
+        <div><div class="habit-title">Perímetro de cintura</div><div class="habit-desc">Más relevante que el peso en tu caso. Indicador de grasa visceral y riesgo metabólico. Mide al nivel del ombligo, en espiración suave.</div></div>
+      </div>
+      <div class="habit-row">
+        <div class="habit-icon" style="background:var(--purple-light);font-size:14px">💪</div>
+        <div><div class="habit-title">Rendimiento en entrenamiento</div><div class="habit-desc">¿Puedes hacer más repeticiones que hace 3 semanas con la misma banda? Señal de progreso muscular real aunque la báscula no se mueva.</div></div>
+      </div>
+      <div class="habit-row" style="border:none">
+        <div class="habit-icon" style="background:var(--blue-light);font-size:14px">🔬</div>
+        <div><div class="habit-title">Analítica a los 3 meses</div><div class="habit-desc">HOMA-IR, LDL, HDL, colesterol total, glucosa en ayunas, vitamina D. El ejercicio y la dieta pueden mejorar estos parámetros significativamente en 8–12 semanas según ACSM y ADA.</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     SECCIÓN: ANALIZAR ALIMENTO
+════════════════════════════════════════════════════════════ -->
+<section class="section" id="sec-analizar">
+  <div class="page-header">
+    <h1>Analizador de alimentos</h1>
+    <p>Escribe en texto libre o busca por nombre · La IA calcula los macros</p>
+  </div>
+  <div class="export-bar">
+    <button class="btn-export" onclick="printSection('sec-analizar')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>Imprimir
+    </button>
+    <button class="btn-export" onclick="exportPDF('sec-analizar','Analizador')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>PDF
+    </button>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Introduce un alimento o comida</div>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:1rem;line-height:1.6">
+      Puedes escribir en texto libre: <em>"kéfir 500 ml Mercadona con fresas"</em>, <em>"yogur griego 200 g con 30 g avena y nueces"</em>, o simplemente el nombre: <em>"pechuga de pollo 150 g"</em>. La IA interpreta marcas, cantidades y combinaciones.
+    </p>
+    <div class="ai-input-wrap">
+      <input type="text" id="food-input" placeholder="Ej: kéfir 500 ml con fresas 100 g..." onkeydown="if(event.key==='Enter')analyzeFood()" />
+      <button class="btn-ai" onclick="analyzeFood()" id="btn-analyze">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        Analizar
+      </button>
+    </div>
+    <div style="font-size:12px;color:var(--text3);margin-top:-4px">
+      Ejemplos rápidos:
+      <span onclick="setFood('kéfir 500 ml con fresas 100 g')" style="cursor:pointer;color:var(--green);margin-left:6px">kéfir con fresas</span> ·
+      <span onclick="setFood('yogur griego 0% 200 g con avena 30 g y nueces 15 g')" style="cursor:pointer;color:var(--green)">yogur + avena + nueces</span> ·
+      <span onclick="setFood('pechuga de pollo 150 g a la plancha')" style="cursor:pointer;color:var(--green)">pechuga plancha</span> ·
+      <span onclick="setFood('lentejas cocidas 200 g con verduras')" style="cursor:pointer;color:var(--green)">lentejas con verduras</span>
+    </div>
+
+    <div class="result-box" id="food-result">
+      <div id="food-result-inner"></div>
+      <div style="display:flex;gap:8px;margin-top:1rem;flex-wrap:wrap">
+        <button class="btn-ai" onclick="saveFoodToLibrary()" id="btn-save-food" style="background:var(--blue)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          Guardar en mis comidas
+        </button>
+        <button class="btn-ai" onclick="addToDiary()" style="background:var(--purple)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+          Añadir al diario de hoy
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" id="saved-foods-card">
+    <div class="card-title" style="justify-content:space-between">
+      <span>Mis comidas guardadas</span>
+      <button onclick="clearSavedFoods()" style="background:none;border:none;font-size:12px;color:var(--text3);cursor:pointer">Borrar todo</button>
+    </div>
+    <div id="saved-foods-list">
+      <div style="font-size:14px;color:var(--text3);padding:1rem 0;text-align:center">Aún no has guardado ninguna comida.<br>Analiza una arriba y pulsa "Guardar".</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     SECCIÓN: DIARIO DIARIO
+════════════════════════════════════════════════════════════ -->
+<section class="section" id="sec-diario">
+  <div class="page-header">
+    <h1>Diario diario</h1>
+    <p>Registra lo que comes · La IA valora tus macros y propone mejoras</p>
+  </div>
+  <div class="export-bar">
+    <button class="btn-export" onclick="printSection('sec-diario')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>Imprimir
+    </button>
+    <button class="btn-export" onclick="exportPDF('sec-diario','Diario Diario')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>PDF
+    </button>
+  </div>
+
+  <!-- FORMULARIO HOY -->
+  <div class="card" id="diary-form-card">
+    <div class="card-title">Registro de hoy — <span id="diary-today-label"></span></div>
+
+    <div class="diary-section-label">🍽 Comidas del día</div>
+    <div id="diary-meals-inputs">
+      <div class="ai-input-wrap" style="margin-bottom:6px">
+        <input type="text" class="diary-meal-input" placeholder="Ej: kéfir 500 ml con fresas · yogur griego + avena..." style="flex:1" />
+      </div>
+    </div>
+    <button onclick="addMealRow()" style="background:none;border:1px dashed var(--border);border-radius:var(--radius-sm);padding:6px 14px;font-size:13px;color:var(--text2);cursor:pointer;margin-bottom:1rem;width:100%;transition:all .2s" onmouseover="this.style.borderColor='var(--green-mid)'" onmouseout="this.style.borderColor='var(--border)'">+ Añadir otra comida o toma</button>
+
+    <div class="diary-section-label">💧 Agua y suplementos</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem">
+      <div class="log-field"><label>Agua bebida (litros)</label><input type="number" id="diary-agua" step="0.1" min="0" max="5" placeholder="1.8" /></div>
+      <div class="log-field"><label>Suplementos tomados hoy</label><input type="text" id="diary-supls" placeholder="Ej: omega-3, magnesio..." /></div>
+    </div>
+
+    <div class="diary-section-label">🌡 Cómo me he sentido</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1rem">
+      <div class="log-field"><label>Energía (1–10)</label><input type="number" id="diary-energia" min="1" max="10" placeholder="7" /></div>
+      <div class="log-field"><label>Digestión (1–10)</label><input type="number" id="diary-digestion" min="1" max="10" placeholder="6" /></div>
+      <div class="log-field"><label>Sueño anoche (1–10)</label><input type="number" id="diary-sueno" min="1" max="10" placeholder="5" /></div>
+    </div>
+    <div class="log-field" style="margin-bottom:1rem">
+      <label>Notas libres (síntomas, antojos, contexto...)</label>
+      <textarea id="diary-notas" style="width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-family:'DM Sans',sans-serif;font-size:14px;min-height:64px;background:var(--surface);color:var(--text);resize:vertical" placeholder="Ej: tuve más hambre de lo habitual, gases por la tarde..."></textarea>
+    </div>
+
+    <button class="btn-ai" onclick="analyzeDiary()" id="btn-diary-analyze" style="width:100%;justify-content:center;padding:12px">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0020 4.77 5.07 5.07 0 0019.91 1S18.73.65 16 2.48a13.38 13.38 0 00-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 005 4.77a5.44 5.44 0 00-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 009 18.13V22"/></svg>
+      Analizar mi día con IA
+    </button>
+
+    <div class="result-box" id="diary-result">
+      <div id="diary-result-inner"></div>
+    </div>
+  </div>
+
+  <!-- HISTORIAL DE DÍAS -->
+  <div class="card">
+    <div class="card-title">Historial de días registrados</div>
+    <div id="diary-history">
+      <div style="font-size:14px;color:var(--text3);padding:1rem 0;text-align:center">Aún no has registrado ningún día.<br>Completa el formulario de arriba y pulsa "Analizar".</div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<script>
+// ─── DATA ────────────────────────────────────────────────
+const menuData = [
+  { day: "Lunes", meals: [
+    { type: "Desayuno", name: "Yogur griego 0% + avena + frutos rojos + lino + nueces", kcal: 420, p: 32, hc: 38, g: 14, fi: 6 },
+    { type: "Comida", name: "Merluza al horno (150 g) + brócoli al vapor + boniato asado (150 g) + AOVE", kcal: 580, p: 38, hc: 42, g: 14, fi: 7 },
+    { type: "Cena", name: "Revuelto de 2 huevos + espinacas + champiñones + AOVE", kcal: 460, p: 28, hc: 8, g: 32, fi: 4 }
+  ]},
+  { day: "Martes 🚶 Caminata", meals: [
+    { type: "Desayuno", name: "2 huevos revueltos + 1 rebanada pan de centeno + tomate + AOVE", kcal: 430, p: 22, hc: 28, g: 18, fi: 4 },
+    { type: "Comida", name: "Lentejas con verduras (zanahoria, cebolla, pimiento) + ensalada verde + AOVE", kcal: 620, p: 28, hc: 68, g: 14, fi: 14 },
+    { type: "Cena", name: "Pechuga de pollo (130 g) a la plancha + ensalada grande + aguacate (½)", kcal: 440, p: 38, hc: 10, g: 22, fi: 6 }
+  ]},
+  { day: "Miércoles", meals: [
+    { type: "Desayuno", name: "Requesón (150 g) + manzana + nueces (20 g)", kcal: 390, p: 22, hc: 32, g: 14, fi: 4 },
+    { type: "Comida", name: "Dorada al horno (150 g) + judías verdes salteadas + arroz integral (60 g seco) + AOVE", kcal: 590, p: 36, hc: 52, g: 14, fi: 6 },
+    { type: "Cena", name: "Salmón a la plancha (120 g) + calabacín salteado + ensalada tomate", kcal: 480, p: 34, hc: 8, g: 28, fi: 4 }
+  ]},
+  { day: "Jueves", meals: [
+    { type: "Desayuno", name: "Yogur griego 0% + avena en copos + kiwi + lino molido (1 cda)", kcal: 380, p: 28, hc: 42, g: 6, fi: 7 },
+    { type: "Comida", name: "Garbanzos con espinacas (200 g garbanzos cocidos) + huevo cocido + AOVE", kcal: 640, p: 30, hc: 62, g: 18, fi: 12 },
+    { type: "Cena", name: "Tortilla 2 huevos + pisto de verduras (calabacín, pimiento, tomate) + AOVE", kcal: 460, p: 18, hc: 16, g: 34, fi: 5 }
+  ]},
+  { day: "Viernes", meals: [
+    { type: "Desayuno", name: "2 huevos revueltos + espinacas salteadas + tomate natural", kcal: 360, p: 22, hc: 8, g: 24, fi: 3 },
+    { type: "Comida", name: "Pechuga pollo (130 g) plancha + quinoa (50 g seco) + brócoli al vapor + AOVE", kcal: 600, p: 44, hc: 46, g: 14, fi: 7 },
+    { type: "Cena", name: "Atún al natural (120 g) + ensalada grande + AOVE + 1 rebanada pan centeno", kcal: 450, p: 34, hc: 22, g: 14, fi: 4 }
+  ]},
+  { day: "Sábado 🚶 Caminata", meals: [
+    { type: "Desayuno", name: "Yogur griego 0% + frutos rojos (100 g) + nueces (20 g) + lino", kcal: 380, p: 22, hc: 28, g: 16, fi: 6 },
+    { type: "Comida", name: "Mejillones al vapor (200 g) + ensalada variada + boniato asado (120 g) + AOVE", kcal: 540, p: 28, hc: 38, g: 14, fi: 6 },
+    { type: "Cena", name: "Tortilla francesa 2 huevos + verdura salteada (pimiento, calabacín) + AOVE", kcal: 440, p: 18, hc: 14, g: 32, fi: 4 }
+  ]},
+  { day: "Domingo", meals: [
+    { type: "Desayuno", name: "Requesón (150 g) + pera + almendras (20 g)", kcal: 370, p: 20, hc: 30, g: 14, fi: 4 },
+    { type: "Comida", name: "Comida familiar / libre — elige proteína plancha + verdura + evita fritos y salsas", kcal: 620, p: 30, hc: 45, g: 22, fi: 5 },
+    { type: "Cena", name: "Crema de verduras (calabaza, zanahoria, cebolla) + 2 huevos cocidos o queso fresco", kcal: 420, p: 24, hc: 28, g: 16, fi: 5 }
+  ]}
+];
+
+const shopData = {
+  "Proteínas animales": ["Huevos (12 u)","Pechuga pollo (400 g)","Pavo (200 g)","Merluza (400 g)","Dorada (300 g)","Salmón (200 g)","Atún natural lata (4 u)","Sardinas lata (2 u)","Gambas (200 g)","Mejillones (300 g)"],
+  "Lácteos y proteína": ["Yogur griego 0% (6 u)","Requesón o queso fresco batido (500 g)","Queso fresco (200 g)"],
+  "Legumbres y cereales": ["Lentejas (500 g seco o bote)","Garbanzos (bote cocido x2)","Avena copos (500 g)","Arroz integral (500 g)","Quinoa (300 g)","Pan centeno / masa madre (pequeña)"],
+  "Verduras": ["Espinacas (bolsa grande)","Brócoli (1 pieza)","Calabacín (3 u)","Tomate (1 kg)","Pimiento (3 u)","Lechuga o rúcula (bolsa)","Judías verdes (400 g)","Champiñones (250 g)","Zanahoria (500 g)","Cebolla (500 g)","Calabaza (1 u)"],
+  "Frutas": ["Manzanas (5 u)","Frutos rojos congelados (500 g)","Kiwis (4 u)","Pera (3 u)","Aguacate (3 u)"],
+  "Almidones y grasas": ["Boniato (1 kg)","Aceite de oliva virgen extra","Nueces (200 g)","Almendras (100 g)"],
+  "Extras": ["Semillas de lino molidas (200 g)","Infusiones sin azúcar","Caldo vegetal bajo sal"]
+};
+
+// ─── NAVIGATION ──────────────────────────────────────────
+function showSection(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('sec-' + id).classList.add('active');
+  event.target.classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ─── BUILD MENU ───────────────────────────────────────────
+function buildMenu() {
+  const container = document.getElementById('menu-container');
+  container.innerHTML = menuData.map((day, i) => {
+    const totalKcal = day.meals.reduce((a, m) => a + m.kcal, 0);
+    const totalP = day.meals.reduce((a, m) => a + m.p, 0);
+    const totalHC = day.meals.reduce((a, m) => a + m.hc, 0);
+    const totalG = day.meals.reduce((a, m) => a + m.g, 0);
+    const mealsHtml = day.meals.map(m => `
+      <div class="meal-row">
+        <div>
+          <div class="meal-type">${m.type}</div>
+          <div class="meal-name">${m.name}</div>
+          <div class="macro-pills">
+            <div class="macro-pill pill-p">P ${m.p}g</div>
+            <div class="macro-pill pill-c">HC ${m.hc}g</div>
+            <div class="macro-pill pill-f">G ${m.g}g</div>
+            <div class="macro-pill pill-fi">Fi ${m.fi}g</div>
+          </div>
+        </div>
+        <div class="meal-macros-right">
+          <div class="meal-kcal-big">${m.kcal}</div>
+          <div class="meal-kcal-label">kcal</div>
+        </div>
+      </div>`).join('');
+    return `
+      <div class="day-card">
+        <div class="day-header" onclick="toggleDay(this)">
+          <div>
+            <div class="day-name">${day.day}</div>
+            <div style="display:flex;gap:8px;margin-top:4px">
+              <span class="macro-pill pill-p" style="font-size:11px">P ${totalP}g</span>
+              <span class="macro-pill pill-c" style="font-size:11px">HC ${totalHC}g</span>
+              <span class="macro-pill pill-f" style="font-size:11px">G ${totalG}g</span>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <div class="day-kcal">${totalKcal} kcal</div>
+            <div class="day-arrow">›</div>
+          </div>
+        </div>
+        <div class="day-meals">${mealsHtml}</div>
+      </div>`;
+  }).join('');
+}
+
+function toggleDay(header) {
+  header.classList.toggle('open');
+  header.nextElementSibling.classList.toggle('open');
+  const arrow = header.querySelector('.day-arrow');
+  arrow.style.transform = header.classList.contains('open') ? 'rotate(90deg)' : '';
+}
+
+// ─── BUILD SHOP ───────────────────────────────────────────
+function buildShop() {
+  const checked = JSON.parse(localStorage.getItem('shop-checked') || '{}');
+  const card = document.getElementById('shop-card');
+  card.innerHTML = Object.entries(shopData).map(([cat, items]) => `
+    <div class="shop-cat">
+      <div class="shop-cat-title">${cat}</div>
+      <div class="shop-items">
+        ${items.map(item => `
+          <div class="shop-item ${checked[item] ? 'checked' : ''}" onclick="toggleShop(this,'${item.replace(/'/g,"\\'")}')">
+            <span class="shop-check">${checked[item] ? '✓' : '○'}</span>
+            ${item}
+          </div>`).join('')}
+      </div>
+    </div>`).join('');
+}
+
+function toggleShop(el, item) {
+  el.classList.toggle('checked');
+  const checked = JSON.parse(localStorage.getItem('shop-checked') || '{}');
+  checked[item] = el.classList.contains('checked');
+  localStorage.setItem('shop-checked', JSON.stringify(checked));
+  el.querySelector('.shop-check').textContent = el.classList.contains('checked') ? '✓' : '○';
+}
+
+function resetShop() {
+  localStorage.removeItem('shop-checked');
+  buildShop();
+}
+
+// ─── TRACKING ────────────────────────────────────────────
+function saveLog() {
+  const peso = document.getElementById('log-peso').value;
+  const cintura = document.getElementById('log-cintura').value;
+  const energia = document.getElementById('log-energia').value;
+  const sueno = document.getElementById('log-sueno').value;
+  if (!peso && !cintura) { alert('Introduce al menos peso o cintura.'); return; }
+  const logs = JSON.parse(localStorage.getItem('progress-logs') || '[]');
+  logs.unshift({ date: new Date().toLocaleDateString('es-ES'), peso, cintura, energia, sueno });
+  localStorage.setItem('progress-logs', JSON.stringify(logs));
+  document.getElementById('log-peso').value = '';
+  document.getElementById('log-cintura').value = '';
+  document.getElementById('log-energia').value = '';
+  document.getElementById('log-sueno').value = '';
+  renderLogs();
+}
+
+function renderLogs() {
+  const logs = JSON.parse(localStorage.getItem('progress-logs') || '[]');
+  const el = document.getElementById('log-list');
+  if (!logs.length) {
+    el.innerHTML = '<div style="font-size:14px;color:var(--text3);text-align:center;padding:2rem 0">Aún no hay mediciones guardadas.<br>Registra la primera arriba.</div>';
+    return;
+  }
+  el.innerHTML = logs.map((l, i) => `
+    <div class="progress-entry">
+      <div class="progress-date">${l.date}</div>
+      <div class="progress-vals">
+        ${l.peso ? `<div class="progress-val">${l.peso} <span>kg</span></div>` : ''}
+        ${l.cintura ? `<div class="progress-val">${l.cintura} <span>cm</span></div>` : ''}
+        ${l.energia ? `<div class="progress-val">${l.energia}<span>/10 energía</span></div>` : ''}
+        ${l.sueno ? `<div class="progress-val">${l.sueno}<span>/10 sueño</span></div>` : ''}
+        <button onclick="deleteLog(${i})" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:16px;padding:0 4px">×</button>
+      </div>
+    </div>`).join('');
+}
+
+function deleteLog(i) {
+  const logs = JSON.parse(localStorage.getItem('progress-logs') || '[]');
+  logs.splice(i, 1);
+  localStorage.setItem('progress-logs', JSON.stringify(logs));
+  renderLogs();
+}
+
+// ─── PRINT ───────────────────────────────────────────────
+function printSection(secId) {
+  const sec = document.getElementById(secId);
+  const content = sec.innerHTML;
+  const win = window.open('', '_blank', 'width=900,height=700');
+  win.document.write(`<!DOCTYPE html><html><head>
+    <meta charset="UTF-8">
+    <title>Plan Salud</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
+    <style>
+      *{box-sizing:border-box;margin:0;padding:0}
+      body{font-family:'DM Sans',sans-serif;color:#1A1814;background:white;padding:2rem;font-size:14px;line-height:1.6}
+      .export-bar,.btn-export,.btn-save,.nav{display:none!important}
+      h1{font-family:'DM Serif Display',serif;font-size:28px;margin-bottom:8px}
+      .card,.day-card,.metric-card{break-inside:avoid;border:1px solid #E5E0D8;border-radius:12px;padding:1.25rem;margin-bottom:1rem}
+      .day-meals{display:block!important}
+      .day-arrow{display:none}
+      .metrics-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:1rem}
+      .metric-value{font-family:'DM Serif Display',serif;font-size:24px}
+      .metric-label{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:#9E9892;margin-bottom:4px}
+      .macro-pill{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:500;margin-right:4px}
+      .pill-p{background:#E8F5EE;color:#1B5E38}
+      .pill-c{background:#FDF0EB;color:#7D2E0B}
+      .pill-f{background:#EBF2FA;color:#0D3563}
+      .pill-fi{background:#F0EBF8;color:#3D1F6B}
+      .meal-row{display:grid;grid-template-columns:1fr auto;gap:1rem;padding:.75rem 0;border-bottom:1px solid #F0EDE8}
+      .meal-type{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#9E9892;margin-bottom:2px}
+      .meal-name{font-size:13px;font-weight:500;margin-bottom:4px}
+      .meal-kcal-big{font-family:'DM Serif Display',serif;font-size:18px}
+      .meal-kcal-label{font-size:10px;color:#9E9892}
+      .day-name{font-family:'DM Serif Display',serif;font-size:16px}
+      .day-header{padding:.75rem 0;border-bottom:1px solid #E5E0D8;display:flex;justify-content:space-between;align-items:center}
+      .habit-row{display:flex;gap:12px;padding:.75rem 0;border-bottom:1px solid #F0EDE8}
+      .habit-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+      .habit-title{font-weight:500;font-size:13px;margin-bottom:2px}
+      .habit-desc{font-size:12px;color:#6B6560;line-height:1.5}
+      .two-col{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+      .alert-box{padding:.75rem 1rem;border-radius:8px;margin-bottom:1rem;font-size:13px;display:flex;gap:10px}
+      .alert-box.danger{background:#FDEEEC;border:1px solid #EEB3AD;color:#7A1C12}
+      .alert-box.warning{background:#FDF5E8;border:1px solid #F5C842;color:#7A5C00}
+      .alert-box.info{background:#EBF2FA;border:1px solid #9EC3EC;color:#0D3563}
+      .supp-row{display:flex;gap:12px;padding:.75rem 0;border-bottom:1px solid #F0EDE8;align-items:flex-start}
+      .supp-dot{width:10px;height:10px;border-radius:50%;margin-top:4px;flex-shrink:0}
+      .supp-name{font-weight:500;font-size:13px;margin-bottom:2px}
+      .supp-desc{font-size:12px;color:#6B6560}
+      .supp-badge{display:inline-block;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:500;margin-top:4px}
+      .exercise-table{width:100%;border-collapse:collapse;font-size:13px}
+      .exercise-table th{font-size:11px;font-weight:600;text-transform:uppercase;color:#9E9892;padding:4px 8px;border-bottom:1px solid #E5E0D8;text-align:left}
+      .exercise-table td{padding:6px 8px;border-bottom:1px solid #F0EDE8}
+      .progress-entry{display:flex;justify-content:space-between;padding:.5rem 0;border-bottom:1px solid #F0EDE8;font-size:13px}
+      .shop-cat{margin-bottom:1rem}
+      .shop-cat-title{font-size:11px;font-weight:600;text-transform:uppercase;color:#9E9892;margin-bottom:6px;padding-bottom:4px;border-bottom:1px solid #E5E0D8}
+      .shop-items{display:flex;flex-wrap:wrap;gap:6px}
+      .shop-item{padding:4px 10px;border:1px solid #E5E0D8;border-radius:16px;font-size:12px}
+      .macro-bar-wrap{margin:.5rem 0}
+      .macro-bar-label{display:flex;justify-content:space-between;font-size:12px;color:#6B6560;margin-bottom:2px}
+      .macro-bar-track{height:5px;background:#F0EDE8;border-radius:3px}
+      .macro-bar-fill{height:100%;border-radius:3px}
+      .fill-protein{background:#52B788}
+      .fill-carbs{background:#E07B39}
+      .fill-fat{background:#4A90D9}
+      .fill-fiber{background:#8B5CF6}
+      .donut-wrap{display:flex;gap:1rem;align-items:center}
+      .legend-item{display:flex;align-items:center;gap:8px;font-size:12px;margin-bottom:6px}
+      .legend-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+    </style></head><body>${content}</body></html>`);
+  win.document.close();
+  setTimeout(() => { win.focus(); win.print(); }, 600);
+}
+
+// ─── PDF ─────────────────────────────────────────────────
+function exportPDF(secId, title) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+  const sec = document.getElementById(secId);
+  const lines = [];
+  lines.push({ text: 'Plan de Salud — ' + title, size: 18, bold: true, y: 20 });
+  lines.push({ text: new Date().toLocaleDateString('es-ES'), size: 10, bold: false, y: 30 });
+
+  function extractText(el, depth) {
+    el.childNodes.forEach(node => {
+      if (node.nodeType === 3) {
+        const t = node.textContent.trim();
+        if (t) lines.push({ text: ('  '.repeat(depth)) + t, size: depth === 0 ? 12 : 10, bold: false });
+      } else if (node.nodeType === 1) {
+        const tag = node.tagName;
+        if (['STYLE','SCRIPT','BUTTON'].includes(tag)) return;
+        if (['H1','H2','H3'].includes(tag)) {
+          lines.push({ text: node.textContent.trim(), size: tag==='H1'?15:tag==='H2'?13:11, bold: true });
+        } else {
+          extractText(node, depth);
+        }
+      }
+    });
+  }
+  extractText(sec, 0);
+
+  let y = 40; const margin = 15; const pageH = 280;
+  lines.forEach(l => {
+    if (!l.y) {
+      if (y > pageH) { doc.addPage(); y = 20; }
+    } else { y = l.y; }
+    doc.setFontSize(l.size || 10);
+    doc.setFont('helvetica', l.bold ? 'bold' : 'normal');
+    const text = (l.text || '').replace(/[^\x00-\x7E]/g, c => c);
+    const wrapped = doc.splitTextToSize(text, 180);
+    wrapped.forEach(line => {
+      if (y > pageH) { doc.addPage(); y = 20; }
+      doc.text(line, margin, y);
+      y += (l.size || 10) * 0.45 + 1.5;
+    });
+  });
+
+  doc.save('plan-salud-' + title.toLowerCase().replace(/ /g,'-') + '.pdf');
+}
+
+
+// ─── PROFILE CONTEXT FOR AI ──────────────────────────────
+const PROFILE_CONTEXT = `Eres un asistente de nutrición especializado. El perfil de la usuaria es:
+- Mujer, 53 años, menopausia
+- Peso: 69 kg, altura: 165 cm, objetivo: 60 kg
+- Resistencia a la insulina (HOMA-IR 8.2), LDL 157 mg/dL, HDL 42 mg/dL
+- Objetivo: perder grasa, definir, mantener músculo
+- Dieta omnívora, sin alergias
+- Estreñimiento frecuente, estrés crónico muy alto, sueño malo
+- Objetivos diarios: 1500-1600 kcal, proteína 105-115 g, carbohidratos 140-160 g, grasas 50-58 g, fibra 28-35 g`;
+
+// ─── FOOD ANALYZER ───────────────────────────────────────
+let lastFoodResult = null;
+
+function setFood(text) {
+  document.getElementById('food-input').value = text;
+  analyzeFood();
+}
+
+async function analyzeFood() {
+  const input = document.getElementById('food-input').value.trim();
+  if (!input) return;
+  const btn = document.getElementById('btn-analyze');
+  const resultBox = document.getElementById('food-result');
+  const inner = document.getElementById('food-result-inner');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="loading-dots">Analizando</span>';
+  resultBox.classList.add('show');
+  inner.innerHTML = '<div style="font-size:14px;color:var(--text2);padding:0.5rem 0">Calculando macros<span class="loading-dots"></span></div>';
+
+  const prompt = `${PROFILE_CONTEXT}
+
+La usuaria ha introducido este alimento o comida: "${input}"
+
+Responde SOLO con un objeto JSON (sin markdown, sin texto extra) con esta estructura exacta:
+{
+  "nombre": "nombre descriptivo del alimento/comida",
+  "cantidad": "cantidad estimada",
+  "kcal": número,
+  "proteina": número en gramos,
+  "hidratos": número en gramos,
+  "grasas": número en gramos,
+  "fibra": número en gramos,
+  "nota": "nota breve sobre este alimento en el contexto del perfil (max 2 frases)"
+}
+
+Si la cantidad no está especificada, usa una ración estándar habitual. Para el kéfir de Mercadona usa valores reales del kéfir líquido natural desnatado. Redondea todos los valores numéricos a enteros.`;
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await response.json();
+    const text = data.content.map(b => b.text || '').join('').trim();
+    const clean = text.replace(/```json|```/g, '').trim();
+    const result = JSON.parse(clean);
+    lastFoodResult = result;
+    renderFoodResult(result, inner);
+  } catch (e) {
+    inner.innerHTML = '<div style="color:var(--red);font-size:14px">Error al analizar. Inténtalo de nuevo.</div>';
+  }
+  btn.disabled = false;
+  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg> Analizar';
+}
+
+function renderFoodResult(r, container) {
+  const targets = { kcal: 1550, proteina: 110, hidratos: 150, grasas: 54, fibra: 31 };
+  const pctKcal = Math.round(r.kcal / targets.kcal * 100);
+  const pctP = Math.round(r.proteina / targets.proteina * 100);
+  const pctHC = Math.round(r.hidratos / targets.hidratos * 100);
+  const pctG = Math.round(r.grasas / targets.grasas * 100);
+  const pctFi = Math.round(r.fibra / targets.fibra * 100);
+
+  container.innerHTML = `
+    <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:1rem">
+      <div style="font-family:'DM Serif Display',serif;font-size:22px;color:var(--text)">${r.nombre}</div>
+      <div style="font-size:13px;color:var(--text2)">${r.cantidad}</div>
+    </div>
+    <div class="semaforo-grid">
+      ${macroBubble('Calorías', r.kcal, 'kcal', pctKcal, targets.kcal + ' kcal/día')}
+      ${macroBubble('Proteína', r.proteina, 'g', pctP, targets.proteina + ' g/día')}
+      ${macroBubble('Hidratos', r.hidratos, 'g', pctHC, targets.hidratos + ' g/día')}
+      ${macroBubble('Grasas', r.grasas, 'g', pctG, targets.grasas + ' g/día')}
+      ${macroBubble('Fibra', r.fibra, 'g', pctFi, targets.fibra + ' g/día')}
+    </div>
+    ${r.nota ? `<div style="background:var(--green-light);border-radius:var(--radius-sm);padding:0.75rem 1rem;font-size:13px;color:#1B5E38;line-height:1.6;margin-top:0.5rem">💡 ${r.nota}</div>` : ''}
+  `;
+}
+
+function macroBubble(label, val, unit, pct, target) {
+  const color = pct <= 15 ? 'ambar' : pct <= 35 ? 'verde' : 'ambar';
+  return `<div class="semaforo-item ${color}">
+    <div class="semaforo-label">${label}</div>
+    <div class="semaforo-val">${val}<small style="font-size:13px"> ${unit}</small></div>
+    <div class="semaforo-target">${pct}% del objetivo</div>
+    <div class="semaforo-target">${target}</div>
+  </div>`;
+}
+
+function saveFoodToLibrary() {
+  if (!lastFoodResult) return;
+  const saved = JSON.parse(localStorage.getItem('saved-foods') || '[]');
+  saved.unshift({ ...lastFoodResult, savedAt: new Date().toLocaleDateString('es-ES') });
+  localStorage.setItem('saved-foods', JSON.stringify(saved));
+  renderSavedFoods();
+  document.getElementById('btn-save-food').textContent = '✓ Guardado';
+  setTimeout(() => {
+    document.getElementById('btn-save-food').innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/></svg> Guardar en mis comidas';
+  }, 1500);
+}
+
+function addToDiary() {
+  if (!lastFoodResult) return;
+  const input = document.getElementById('food-input').value.trim();
+  showSection('diario');
+  setTimeout(() => {
+    const inputs = document.querySelectorAll('.diary-meal-input');
+    const last = inputs[inputs.length - 1];
+    if (last.value.trim()) addMealRow();
+    const newLast = document.querySelectorAll('.diary-meal-input');
+    newLast[newLast.length - 1].value = input;
+  }, 200);
+}
+
+function renderSavedFoods() {
+  const saved = JSON.parse(localStorage.getItem('saved-foods') || '[]');
+  const el = document.getElementById('saved-foods-list');
+  if (!saved.length) {
+    el.innerHTML = '<div style="font-size:14px;color:var(--text3);padding:1rem 0;text-align:center">Aún no has guardado ninguna comida.<br>Analiza una arriba y pulsa "Guardar".</div>';
+    return;
+  }
+  el.innerHTML = '<div class="saved-food-list">' + saved.map((f, i) => `
+    <div class="saved-food-item">
+      <div>
+        <div class="saved-food-name">${f.nombre} <span style="font-size:12px;color:var(--text3);font-weight:400">${f.cantidad}</span></div>
+        <div class="saved-food-macros">
+          <span class="macro-pill pill-p">P ${f.proteina}g</span>
+          <span class="macro-pill pill-c">HC ${f.hidratos}g</span>
+          <span class="macro-pill pill-f">G ${f.grasas}g</span>
+          <span class="macro-pill pill-fi">Fi ${f.fibra}g</span>
+          <span class="macro-pill pill-k">${f.kcal} kcal</span>
+        </div>
+      </div>
+      <button class="del-btn" onclick="deleteSavedFood(${i})">×</button>
+    </div>`).join('') + '</div>';
+}
+
+function deleteSavedFood(i) {
+  const saved = JSON.parse(localStorage.getItem('saved-foods') || '[]');
+  saved.splice(i, 1);
+  localStorage.setItem('saved-foods', JSON.stringify(saved));
+  renderSavedFoods();
+}
+
+function clearSavedFoods() {
+  if (!confirm('¿Borrar todas las comidas guardadas?')) return;
+  localStorage.removeItem('saved-foods');
+  renderSavedFoods();
+}
+
+// ─── DIARY ───────────────────────────────────────────────
+document.getElementById('diary-today-label').textContent = new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
+
+function addMealRow() {
+  const wrap = document.getElementById('diary-meals-inputs');
+  const div = document.createElement('div');
+  div.className = 'ai-input-wrap';
+  div.style.marginBottom = '6px';
+  div.innerHTML = `<input type="text" class="diary-meal-input" placeholder="Ej: comida principal, cena, merienda..." style="flex:1"/>
+    <button onclick="this.parentNode.remove()" style="background:none;border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 10px;cursor:pointer;color:var(--text3);font-size:16px;line-height:1">×</button>`;
+  wrap.appendChild(div);
+  div.querySelector('input').focus();
+}
+
+async function analyzeDiary() {
+  const mealInputs = Array.from(document.querySelectorAll('.diary-meal-input'))
+    .map(i => i.value.trim()).filter(Boolean);
+  if (!mealInputs.length) { alert('Introduce al menos una comida.'); return; }
+
+  const agua = document.getElementById('diary-agua').value || 'no indicado';
+  const supls = document.getElementById('diary-supls').value || 'no indicados';
+  const energia = document.getElementById('diary-energia').value || 'no indicado';
+  const digestion = document.getElementById('diary-digestion').value || 'no indicado';
+  const sueno = document.getElementById('diary-sueno').value || 'no indicado';
+  const notas = document.getElementById('diary-notas').value || '';
+
+  const btn = document.getElementById('btn-diary-analyze');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="loading-dots">Analizando tu día</span>';
+  const resultBox = document.getElementById('diary-result');
+  const inner = document.getElementById('diary-result-inner');
+  resultBox.classList.add('show');
+  inner.innerHTML = '<div style="font-size:14px;color:var(--text2);padding:0.5rem 0">Calculando macros y preparando análisis<span class="loading-dots"></span></div>';
+
+  const prompt = `${PROFILE_CONTEXT}
+
+La usuaria ha registrado su día completo:
+
+COMIDAS:
+${mealInputs.map((m, i) => `${i + 1}. ${m}`).join('\n')}
+
+AGUA: ${agua} litros
+SUPLEMENTOS: ${supls}
+ENERGÍA PERCIBIDA: ${energia}/10
+DIGESTIÓN: ${digestion}/10
+SUEÑO ANOCHE: ${sueno}/10
+NOTAS: ${notas || 'ninguna'}
+
+Responde SOLO con un objeto JSON (sin markdown, sin texto extra) con esta estructura exacta:
+{
+  "totales": {
+    "kcal": número,
+    "proteina": número,
+    "hidratos": número,
+    "grasas": número,
+    "fibra": número
+  },
+  "semaforo": {
+    "kcal": "verde|ambar|rojo",
+    "proteina": "verde|ambar|rojo",
+    "hidratos": "verde|ambar|rojo",
+    "grasas": "verde|ambar|rojo",
+    "fibra": "verde|ambar|rojo"
+  },
+  "valoracion": "valoración global del día en 2-3 frases, tono positivo y constructivo",
+  "puntos_bien": ["punto 1", "punto 2"],
+  "puntos_mejorar": ["punto 1", "punto 2"],
+  "propuesta": "propuesta concreta y específica de qué cambiar o añadir mañana para mejorar, 3-4 frases adaptadas al perfil (resistencia a la insulina, menopausia, estreñimiento, estrés)",
+  "bienestar_nota": "observación breve sobre la relación entre lo comido y los síntomas reportados (energía, digestión, sueño)"
+}
+
+Criterios de semáforo:
+- verde: dentro del 10% del objetivo
+- ambar: entre 10-25% por encima o por debajo
+- rojo: más del 25% de desviación
+
+Objetivos diarios: kcal 1500-1600, proteína 105-115g, hidratos 140-160g, grasas 50-58g, fibra 28-35g`;
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await response.json();
+    const text = data.content.map(b => b.text || '').join('').trim();
+    const clean = text.replace(/```json|```/g, '').trim();
+    const result = JSON.parse(clean);
+    renderDiaryResult(result, inner, mealInputs, agua, supls, energia, digestion, sueno, notas);
+    saveDiaryEntry(result, mealInputs, agua, supls, energia, digestion, sueno, notas);
+  } catch (e) {
+    inner.innerHTML = '<div style="color:var(--red);font-size:14px">Error al analizar. Inténtalo de nuevo.</div>';
+  }
+  btn.disabled = false;
+  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0020 4.77 5.07 5.07 0 0019.91 1S18.73.65 16 2.48a13.38 13.38 0 00-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 005 4.77a5.44 5.44 0 00-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 009 18.13V22"/></svg> Analizar mi día con IA';
+}
+
+const TARGETS = { kcal: 1550, proteina: 110, hidratos: 150, grasas: 54, fibra: 31 };
+const LABELS = { kcal: 'Calorías', proteina: 'Proteína', hidratos: 'Hidratos', grasas: 'Grasas', fibra: 'Fibra' };
+const UNITS  = { kcal: 'kcal', proteina: 'g', hidratos: 'g', grasas: 'g', fibra: 'g' };
+
+function renderDiaryResult(r, container, meals, agua, supls, energia, digestion, sueno, notas) {
+  const t = r.totales; const s = r.semaforo;
+  container.innerHTML = `
+    <div style="font-family:'DM Serif Display',serif;font-size:18px;color:var(--text);margin-bottom:1rem">Análisis del día</div>
+
+    <div class="semaforo-grid">
+      ${Object.keys(t).map(k => `
+        <div class="semaforo-item ${s[k]}">
+          <div class="semaforo-label">${LABELS[k]}</div>
+          <div class="semaforo-val">${t[k]}<small style="font-size:12px"> ${UNITS[k]}</small></div>
+          <div class="semaforo-target">Obj: ${TARGETS[k]} ${UNITS[k]}</div>
+        </div>`).join('')}
+    </div>
+
+    <div style="background:var(--surface);border-radius:var(--radius-sm);padding:1rem;margin-top:1rem;border:1px solid var(--border)">
+      <div style="font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:0.75rem">${r.valoracion}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+        <div>
+          <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--green);margin-bottom:6px">Lo que has hecho bien</div>
+          ${(r.puntos_bien||[]).map(p => `<div style="font-size:13px;color:var(--text2);padding:3px 0;line-height:1.5">✓ ${p}</div>`).join('')}
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--amber);margin-bottom:6px">Qué mejorar</div>
+          ${(r.puntos_mejorar||[]).map(p => `<div style="font-size:13px;color:var(--text2);padding:3px 0;line-height:1.5">→ ${p}</div>`).join('')}
+        </div>
+      </div>
+    </div>
+
+    <div style="background:var(--green-light);border-radius:var(--radius-sm);padding:1rem;margin-top:0.75rem;border:1px solid #B7DFCA">
+      <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--green);margin-bottom:6px">Propuesta para mañana</div>
+      <div style="font-size:13px;color:#1B5E38;line-height:1.7">${r.propuesta}</div>
+    </div>
+
+    ${r.bienestar_nota ? `<div style="background:var(--blue-light);border-radius:var(--radius-sm);padding:1rem;margin-top:0.75rem;border:1px solid #9EC3EC">
+      <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--blue);margin-bottom:6px">Energía · Digestión · Sueño</div>
+      <div style="font-size:13px;color:#0D3563;line-height:1.7">${r.bienestar_nota}</div>
+    </div>` : ''}
+  `;
+}
+
+function saveDiaryEntry(result, meals, agua, supls, energia, digestion, sueno, notas) {
+  const entries = JSON.parse(localStorage.getItem('diary-entries') || '[]');
+  entries.unshift({
+    date: new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }),
+    dateRaw: new Date().toISOString().split('T')[0],
+    meals, agua, supls, energia, digestion, sueno, notas,
+    result
+  });
+  localStorage.setItem('diary-entries', JSON.stringify(entries.slice(0, 60)));
+  renderDiaryHistory();
+}
+
+function renderDiaryHistory() {
+  const entries = JSON.parse(localStorage.getItem('diary-entries') || '[]');
+  const el = document.getElementById('diary-history');
+  if (!entries.length) {
+    el.innerHTML = '<div style="font-size:14px;color:var(--text3);padding:1rem 0;text-align:center">Aún no has registrado ningún día.<br>Completa el formulario de arriba y pulsa "Analizar".</div>';
+    return;
+  }
+  el.innerHTML = entries.map((e, i) => {
+    const t = e.result?.totales || {};
+    const s = e.result?.semaforo || {};
+    const summary = [
+      t.kcal ? t.kcal + ' kcal' : '',
+      t.proteina ? 'P ' + t.proteina + 'g' : '',
+      e.energia ? '⚡' + e.energia + '/10' : '',
+      e.digestion ? '🌿' + e.digestion + '/10' : ''
+    ].filter(Boolean).join(' · ');
+    return `
+      <div class="diary-day-card">
+        <div class="diary-day-header" onclick="toggleDiaryDay(this)">
+          <div>
+            <div class="diary-day-date">${e.date}</div>
+            <div class="diary-day-summary">${summary}</div>
+          </div>
+          <div style="display:flex;gap:6px;align-items:center">
+            ${Object.values(s).map(v => `<div style="width:10px;height:10px;border-radius:50%;background:${v==='verde'?'#52B788':v==='ambar'?'#E07B39':'#C0392B'}"></div>`).join('')}
+            <span style="color:var(--text3);font-size:18px;transition:transform .3s" class="diary-arrow">›</span>
+          </div>
+        </div>
+        <div class="diary-day-body">
+          <div class="diary-section-label">Comidas</div>
+          ${(e.meals||[]).map(m => `<div class="tag-pill">${m}</div>`).join('')}
+          ${e.agua ? `<div style="font-size:13px;color:var(--text2);margin-top:8px">💧 ${e.agua} L · ${e.supls||'sin suplementos'}</div>` : ''}
+          <div class="semaforo-grid" style="margin-top:1rem">
+            ${t.kcal !== undefined ? Object.keys(t).map(k => `
+              <div class="semaforo-item ${s[k]||'ambar'}">
+                <div class="semaforo-label">${LABELS[k]}</div>
+                <div class="semaforo-val">${t[k]}<small style="font-size:11px"> ${UNITS[k]}</small></div>
+              </div>`).join('') : ''}
+          </div>
+          ${e.result?.valoracion ? `<div style="font-size:13px;color:var(--text2);margin-top:0.75rem;line-height:1.6;padding:0.75rem;background:var(--surface2);border-radius:var(--radius-sm)">${e.result.valoracion}</div>` : ''}
+          ${e.result?.propuesta ? `<div style="font-size:13px;color:#1B5E38;margin-top:0.5rem;line-height:1.6;padding:0.75rem;background:var(--green-light);border-radius:var(--radius-sm)">💡 ${e.result.propuesta}</div>` : ''}
+          <button onclick="deleteDiaryEntry(${i})" style="margin-top:0.75rem;background:none;border:none;font-size:12px;color:var(--text3);cursor:pointer">Eliminar este día</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function toggleDiaryDay(header) {
+  const body = header.nextElementSibling;
+  const arrow = header.querySelector('.diary-arrow');
+  body.classList.toggle('open');
+  arrow.style.transform = body.classList.contains('open') ? 'rotate(90deg)' : '';
+}
+
+function deleteDiaryEntry(i) {
+  const entries = JSON.parse(localStorage.getItem('diary-entries') || '[]');
+  entries.splice(i, 1);
+  localStorage.setItem('diary-entries', JSON.stringify(entries));
+  renderDiaryHistory();
+}
+
+// ─── INIT ────────────────────────────────────────────────
+buildMenu();
+buildShop();
+renderLogs();
+renderSavedFoods();
+renderDiaryHistory();
+</script>
+</body>
+</html>
